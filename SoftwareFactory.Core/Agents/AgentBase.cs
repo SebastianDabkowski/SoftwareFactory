@@ -232,9 +232,7 @@ namespace SoftwareFactory.Core.Agents
                 id = requestId,
                 result = new
                 {
-                    decision = answer?.Trim()
-                        .Equals("y", StringComparison.OrdinalIgnoreCase)
-                            == true ? "accept" : "decline"
+                    decision = answer?.Trim().Equals("y", StringComparison.OrdinalIgnoreCase) == true ? "accept" : "decline"
                 }
             });
         }
@@ -249,8 +247,7 @@ namespace SoftwareFactory.Core.Agents
             Console.Write("Zatwierdzić? (y/n): ");
 
             var answer = Console.ReadLine();
-            var decision = answer?.Trim().ToLowerInvariant()
-                == "y" ? "accept" : "decline";
+            var decision = answer?.Trim().ToLowerInvariant() == "y" ? "accept" : "decline";
 
             await SendAsync(new
             {
@@ -334,8 +331,6 @@ namespace SoftwareFactory.Core.Agents
             return JsonNode.Parse(line)!.AsObject();
         }
 
-        // Wysyła żądanie i czeka na odpowiedź o określonym ID.
-        // W tym uproszczonym przykładzie obsługujemy je sekwencyjnie.
         private async Task<JsonObject> RequestAsync(int id, string method, object parameters)
         {
             await SendAsync(new { id, method, @params = parameters });
@@ -344,7 +339,6 @@ namespace SoftwareFactory.Core.Agents
             {
                 var message = await ReadMessageAsync();
 
-                // Zdarzenia mogą przychodzić także między odpowiedziami.
                 if (message["id"]?.ToString() != id.ToString())
                 {
                     continue;
