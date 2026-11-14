@@ -1,34 +1,29 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using SoftwareFactory.Core.Agents;
 
 namespace SoftwareFactory.Core
 {
     public class SoftwareSystem
     {
-        public async Task Start(string projectPath)
+        public async Task Start(string projectPath, string goal)
         {
-            string _workspace = Path.GetFullPath(projectPath);
-            var architect = new AgentSystem(_workspace);
-            architect.AgentName = "Architect";
-            architect.Instruction = "You are an architect. You will create a software architecture for the project.";
+            ArgumentException.ThrowIfNullOrWhiteSpace(projectPath);
+            ArgumentException.ThrowIfNullOrWhiteSpace(goal);
 
+            string workspace = Path.GetFullPath(projectPath);
+            var architect = AgentFactory.CreateAgent(AgentRole.Architect, workspace);
+            await architect.StartAgent($"""
+                Create a software architecture for the following project:
+                {goal}
+                Save the architecture in ARCHITECTURE.md in the current workspace
+                so that the developer agent can use it.
+                """);
 
-
-            string prompt = """
-                Create a simple ASP.NET Core Web API.
-                Requirements:
-                - .NET
-                - Products CRUD
-                - In-memory storage
-                - Swagger/OpenAPI
-                - Unit tests
+            var developer = AgentFactory.CreateAgent(AgentRole.Developer, workspace);
+            await developer.StartAgent($"""
+                Implement the following project using ARCHITECTURE.md in the current workspace:
+                {goal}
                 Create all files in the current workspace.
-                """;
-            var agnetCoder = new AgentSystem(_workspace);
-            await agnetCoder.StartAgent(prompt);
-
-
+                """);
         }
     }
 }

@@ -2,23 +2,46 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace SoftwareFactory.Core
+namespace SoftwareFactory.Core.Agents
 {
-    public class AgentSystem
+    public class AgentBase
     {
         private Process _process = null!;
-        private string _workspace = null!;
+        private readonly string _workspace;
 
-        public string AgentName { get; set; }
-        public string Instruction { get; set; }
+        public string AgentName { get; set; } = string.Empty;
+        public string Instruction { get; set; } = string.Empty;
+        public int Id { get; internal set; }
+        public CodexModelConfig Config { get; internal set; } =
+            new(CodexModels.Models.Gpt61Sol, CodexModels.Reasoning.Medium);
 
-        public AgentSystem(string projectPath)
+        public AgentBase(string projectPath)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(projectPath);
             _workspace = Path.GetFullPath(projectPath);
-            StartProcess(_workspace);
         }
 
         public async Task StartAgent(string prompt)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(prompt);
+            if (Config is null || string.IsNullOrWhiteSpace(Config.model))
+            {
+                throw new InvalidOperationException("Agent configuration is not set.");
+            }
+
+            // The factory sets the agent configuration after construction.
+            StartProcess(_workspace);
+            try
+            {
+                await RunAgentAsync(prompt);
+            }
+            finally
+            {
+                StopAgent();
+            }
+        }
+
+        private async Task RunAgentAsync(string prompt)
         {
             // 1. Initialize
             var clientInfo = new
@@ -34,7 +57,7 @@ namespace SoftwareFactory.Core
             await SendAsync(new { method = "initialized", @params = new { } });
 
             // 3. Create thread
-            var parameters = new { cwd = _workspace };
+            var parameters = new { model = Config.model, cwd = _workspace, developerInstructions = Instruction };
             var threadResponse = await RequestAsync(1, "thread/start", parameters);
 
             var threadId = threadResponse["result"]?["thread"]?["id"]?.GetValue<string>();
@@ -46,10 +69,12 @@ namespace SoftwareFactory.Core
 
             Console.WriteLine($"Thread: {threadId}");
 
+
+
             // 4. Start agent task
             string text = $"{Instruction}\n {prompt}";
             var input = new[] { new { type = "text", text = text } };
-            var turnParameters = new { threadId, input };
+            var turnParameters = new { threadId, input, effort = Config.reasoningEffort };
             await RequestAsync(2, "turn/start", turnParameters);
 
             // 5. Stream events
@@ -94,15 +119,6 @@ namespace SoftwareFactory.Core
                 {
                     break;
                 }
-            }
-
-            // 6. Cleanup
-            _process.StandardInput.Close();
-
-            if (!_process.HasExited)
-            {
-                _process.Kill(entireProcessTree: true);
-                await _process.WaitForExitAsync();
             }
 
             Console.WriteLine("Finished.");

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <ProjectReference Include="..\SoftwareFactory.Core\SoftwareFactory.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SoftwareFactory.Core
+namespace SoftwareFactory.Core.Agents
 {
     public static class CodexModels
     {
@@ -28,20 +28,7 @@ namespace SoftwareFactory.Core
             public const string Max = "max";
         }
 
-        public static class Presets
-        {
-            public static readonly CodexModelConfig Architect = new(Models.Gpt61Sol, Reasoning.High);
-
-            public static readonly CodexModelConfig Developer = new(Models.Gpt6Sol, Reasoning.Medium);
-
-            public static readonly CodexModelConfig Frontend = new(Models.Gpt6Sol, Reasoning.Medium);
-
-            public static readonly CodexModelConfig QA = new(Models.Gpt6Luna, Reasoning.Low);
-
-            public static readonly CodexModelConfig Reviewer = new(Models.Gpt61Sol, Reasoning.High);
-
-            public static readonly CodexModelConfig SimpleTask = new(Models.Gpt6Luna, Reasoning.Low);
-        }
+       
     }
 
     public sealed record CodexModelConfig(string model, string reasoningEffort);
