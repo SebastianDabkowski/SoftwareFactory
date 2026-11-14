@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SoftwareFactory.Core.Agents
 {
-    public static class CodexModels
+    public static class PiModels
     {
         public static class Models
         {
@@ -20,6 +20,7 @@ namespace SoftwareFactory.Core.Agents
 
         public static class Reasoning
         {
+            public const string Off = "off";
             public const string Minimal = "minimal";
             public const string Low = "low";
             public const string Medium = "medium";
@@ -31,5 +32,18 @@ namespace SoftwareFactory.Core.Agents
        
     }
 
-    public sealed record CodexModelConfig(string model, string reasoningEffort);
+    public sealed record PiModelConfig(
+        string Model = PiModels.Models.Gpt61Sol,
+        string ThinkingLevel = PiModels.Reasoning.Medium,
+        string Provider = "openai")
+    {
+        internal void Validate()
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(Model);
+            ArgumentException.ThrowIfNullOrWhiteSpace(Provider);
+            if (ThinkingLevel is not ("off" or "minimal" or "low" or "medium" or "high" or "xhigh" or "max"))
+                throw new ArgumentException($"Unsupported Pi thinking level: {ThinkingLevel}", nameof(ThinkingLevel));
+            // Model availability is checked by Pi, including custom providers/models.
+        }
+    }
 }

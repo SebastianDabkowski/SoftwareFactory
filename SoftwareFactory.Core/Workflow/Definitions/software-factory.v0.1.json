@@ -1,0 +1,310 @@
+{
+  "id": "software-factory",
+  "version": "0.1.0",
+  "name": "Cel → biznes → architektura → implementacja → test → stage",
+  "entryStepId": "business.research",
+  "policy": {
+    "maxClarificationRounds": 3,
+    "maxTicketReworkCycles": 3,
+    "maxReleaseCycles": 3,
+    "integrationBranch": "develop",
+    "ticketBranchPattern": "ticket/{ticketId}-{slug}",
+    "requireEvidenceForPass": true,
+    "blockOnUnansweredBusinessQuestions": true
+  },
+  "stages": [
+    {
+      "id": "business",
+      "name": "1. Biznes",
+      "steps": [
+        {
+          "id": "business.research",
+          "name": "Research celu projektu",
+          "role": "businessAnalyst",
+          "instructions": "Zbadaj cel, odbiorców, problem, konkurencję, wartość biznesową, ograniczenia, ryzyka i mierniki sukcesu. Przy źródłach podaj URL i datę dostępu. Oddziel fakty od hipotez. Brak dostępu do sieci jawnie odnotuj; nie wymyślaj researchu. Nierozstrzygalne kwestie skieruj do właściciela projektu.",
+          "inputs": ["BRIEF.md"],
+          "outputs": ["docs/business/research.md"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.scope" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "name": "2. Architektura i przygotowanie implementacji",
+      "steps": [
+        {
+          "id": "architecture.scope",
+          "name": "Funkcjonalności, aktorzy i zdarzenia",
+          "role": "architect",
+          "instructions": "Na podstawie celu i researchu opisz zakres MVP, funkcjonalności, aktorów, przypadki użycia, reguły i zdarzenia systemowe. Zapisz decyzje architektoniczne jako ADR; ta reguła obowiązuje przy każdej późniejszej decyzji.",
+          "inputs": ["BRIEF.md", "docs/business/research.md"],
+          "outputs": ["docs/architecture/system-model.md"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.business-questions" }]
+        },
+        {
+          "id": "architecture.business-questions",
+          "name": "Pytania biznesowe architekta",
+          "role": "architect",
+          "instructions": "Zapisz pytania z identyfikatorem, kontekstem, powodem i informacją, czy blokują projekt. Nie zastępuj brakującej wiedzy biznesowej decyzją techniczną.",
+          "inputs": ["docs/architecture/system-model.md", "docs/business/research.md"],
+          "outputs": ["docs/business/questions.json"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.business-answers" }]
+        },
+        {
+          "id": "architecture.business-answers",
+          "name": "Odpowiedzi analityka biznesowego",
+          "role": "businessAnalyst",
+          "instructions": "Odpowiedz na pytania architekta z odniesieniem do źródeł i celu. Oznacz potwierdzone odpowiedzi, jawne założenia oraz pytania do właściciela. Pytania blokujące bez danych wymagają zatrzymania procesu.",
+          "inputs": ["BRIEF.md", "docs/business/research.md", "docs/business/questions.json"],
+          "outputs": ["docs/business/answers.md", "docs/business/questions.json"],
+          "transitions": [{ "outcome": "answered", "target": "architecture.domain" }, { "outcome": "clarification_needed", "target": "architecture.business-questions" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        },
+        {
+          "id": "architecture.domain",
+          "name": "Core domain i opis aplikacji",
+          "role": "architect",
+          "instructions": "Określ core domain, granice odpowiedzialności, słownik pojęć, model domenowy i integracje. Utwórz architecture.md na podstawie potwierdzonych danych i jawnych założeń.",
+          "inputs": ["BRIEF.md", "docs/architecture/system-model.md", "docs/business/answers.md"],
+          "outputs": ["architecture.md"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.quality-questions" }]
+        },
+        {
+          "id": "architecture.quality-questions",
+          "name": "Pytania o charakterystyki systemu",
+          "role": "architect",
+          "instructions": "Zapytaj o priorytety: bezpieczeństwo, prywatność, wydajność, dostępność, skalowanie, koszty, utrzymywalność, dostępność cyfrową i wdrażanie na serwerze. Dla ważnych wymagań poproś o mierzalne kryteria.",
+          "inputs": ["architecture.md", "BRIEF.md"],
+          "outputs": ["docs/architecture/quality-questions.json"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.quality-answers" }]
+        },
+        {
+          "id": "architecture.quality-answers",
+          "name": "Biznesowe priorytety jakościowe",
+          "role": "businessAnalyst",
+          "instructions": "Uszereguj charakterystyki według znaczenia biznesowego, podaj kompromisy i mierzalne kryteria. Brakujące decyzje właściciela oznacz jako blokady, a nie fikcyjne wymagania.",
+          "inputs": ["docs/architecture/quality-questions.json", "docs/business/research.md", "BRIEF.md"],
+          "outputs": ["docs/architecture/quality-requirements.md"],
+          "transitions": [{ "outcome": "answered", "target": "architecture.decisions" }, { "outcome": "clarification_needed", "target": "architecture.quality-questions" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        },
+        {
+          "id": "architecture.decisions",
+          "name": "ADR i kompromisy architektoniczne",
+          "role": "architect",
+          "instructions": "Utrwal decyzje jako numerowane ADR z kontekstem, alternatywami, uzasadnieniem, konsekwencjami i statusem. Powiąż je z wymaganiami jakościowymi. Kolejne decyzje w całym procesie również wymagają ADR.",
+          "inputs": ["architecture.md", "docs/architecture/quality-requirements.md"],
+          "outputs": ["docs/adr/NNNN-title.md", "architecture.md"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.code-structure" }]
+        },
+        {
+          "id": "architecture.code-structure",
+          "name": "Struktura kodu i sposób wdrażania",
+          "role": "architect",
+          "instructions": "Opisz projekty, moduły, zależności, granice warstw, konfigurację, migracje danych, testy, health checks i wymagania serwerowe. Zaktualizuj architecture.md i odnośniki do ADR.",
+          "inputs": ["architecture.md", "docs/architecture/quality-requirements.md", "docs/adr/NNNN-title.md"],
+          "outputs": ["architecture.md", "docs/architecture/code-structure.md"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.backlog" }]
+        },
+        {
+          "id": "architecture.backlog",
+          "name": "Lista zadań zgodna z Ticket.cs",
+          "role": "architect",
+          "instructions": "Utwórz tickets/tickets.json zgodnie z publicznym modelem Ticket. Pierwsze zadanie typu Foundation tworzy strukturę kodu według architektury, bazową kompilację i testy. Określ kolejność, zależności, zakres backend/frontend i kryteria akceptacji. Nieznane kwestie biznesowe zapisz w questions właściwego ticketa.",
+          "inputs": ["BRIEF.md", "architecture.md", "docs/architecture/code-structure.md", "docs/business/answers.md"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "architecture.backlog-answers" }]
+        },
+        {
+          "id": "architecture.backlog-answers",
+          "name": "Uzupełnienie biznesowe ticketów",
+          "role": "businessAnalyst",
+          "instructions": "Odpowiedz na questions w ticketach, uzupełnij mierzalne acceptanceCriteria i przykłady. Oznacz autorstwo odpowiedzi. W razie braku decyzji właściciela ustaw ticket jako blocked i zgłoś blokadę zamiast wymyślać odpowiedź.",
+          "inputs": ["tickets/tickets.json", "docs/business/research.md", "docs/business/answers.md"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "answered", "target": "architecture.backlog-review" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        },
+        {
+          "id": "architecture.backlog-review",
+          "name": "Przegląd wszystkich zadań",
+          "role": "architect",
+          "instructions": "Zweryfikuj kompletność, kolejność, brak cykli zależności, wykonalność i testowalność. Ticket bez blokujących pytań i z kryteriami otrzymuje ready. Braki biznesowe wracają do BA; błędy struktury backlogu do planowania.",
+          "inputs": ["tickets/tickets.json", "architecture.md"],
+          "outputs": ["tickets/tickets.json", "docs/architecture/backlog-review.md"],
+          "transitions": [{ "outcome": "approved", "target": "architecture.visual-style" }, { "outcome": "business_gaps", "target": "architecture.backlog-answers" }, { "outcome": "planning_gaps", "target": "architecture.backlog" }]
+        },
+        {
+          "id": "architecture.visual-style",
+          "name": "Styl aplikacji dla Frontend Agenta",
+          "role": "architect",
+          "instructions": "Przygotuj design brief: układ ekranów, ścieżki użytkownika, kolory, typografię, komponenty, stany ładowania/puste/błędy, responsywność i dostępność. Powiąż ekrany z ticketami; dla systemu bez UI zapisz uzasadnione N/A.",
+          "inputs": ["architecture.md", "tickets/tickets.json", "docs/architecture/quality-requirements.md"],
+          "outputs": ["docs/design/ui-style.md", "tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "implementation.select-ticket" }]
+        }
+      ]
+    },
+    {
+      "id": "implementation",
+      "name": "3. Kodowanie — pętla po zadaniach",
+      "steps": [
+        {
+          "id": "implementation.select-ticket",
+          "name": "Wybór zadania i branch",
+          "role": "developer",
+          "instructions": "Wybierz najpierw zadanie changesRequested, potem najwcześniejsze ready/todo z zakończonymi zależnościami. Użyj order, potem priority i id. Utwórz branch ticket/{ticketId}-{slug} z aktualnego develop. Przy poprawce kontynuuj ten sam branch i PR; brak gotowych zadań nie oznacza pustego backlogu, jeśli istnieją blokady.",
+          "inputs": ["tickets/tickets.json", "architecture.md"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "ticket_selected", "target": "implementation.backend" }, { "outcome": "backlog_empty", "target": "testing.release" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "implementation.backend",
+          "name": "Implementacja backendu i unit testy",
+          "role": "developer",
+          "instructions": "Wykonaj zakres ticketa i unit testy, uruchom build/test. Po poprawce obsłuż wszystkie komentarze QA i review. Napisz do Frontend Agenta komentarz z brakującą pracą UI, kontraktami API i ograniczeniami; nie uznawaj samego backendu za ukończony ticket.",
+          "inputs": ["tickets/tickets.json", "architecture.md", "docs/architecture/code-structure.md"],
+          "outputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/unit-tests.json"],
+          "transitions": [{ "outcome": "completed", "target": "implementation.frontend" }, { "outcome": "business_question", "target": "architecture.backlog-answers" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "implementation.frontend",
+          "name": "Dokończenie interfejsu na tym samym branchu",
+          "role": "frontend",
+          "instructions": "Na branchu bieżącego zadania wykonaj UI według komentarzy developera, design briefu i kryteriów. Sprawdź build i stany błędów. Brak zakresu frontend oznacz jako N/A z powodem, nie twórz zbędnego UI.",
+          "inputs": ["tickets/tickets.json", "docs/design/ui-style.md", "architecture.md"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "implementation.test-scenarios" }, { "outcome": "not_applicable", "target": "implementation.test-scenarios" }, { "outcome": "backend_changes_required", "target": "implementation.backend" }]
+        },
+        {
+          "id": "implementation.test-scenarios",
+          "name": "Scenariusze testowe QA",
+          "role": "qa",
+          "instructions": "Na podstawie ticketa utwórz scenariusze z warunkami wstępnymi, krokami, oczekiwaniami oraz powiązaniem z kryteriami. Pokryj ścieżki pozytywne, negatywne, autoryzację i izolację danych.",
+          "inputs": ["tickets/tickets.json", "docs/design/ui-style.md"],
+          "outputs": ["artifacts/tickets/{ticketId}/test-scenarios.json"],
+          "transitions": [{ "outcome": "completed", "target": "implementation.playwright" }]
+        },
+        {
+          "id": "implementation.playwright",
+          "name": "Testy Playwright i weryfikacja zadania",
+          "role": "qa",
+          "instructions": "Zaimplementuj i wykonaj testy Playwright według scenariuszy, zapisz wyniki i trace/screenshot błędów. Dla backend-only udokumentuj N/A dla UI i wykonaj testy API/integracyjne; nie pomijaj całej weryfikacji. Błąd zapisz w komentarzu ticketa z reprodukcją i wyślij do Developer. Brak narzędzia jest blokadą, nie PASS.",
+          "inputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/test-scenarios.json"],
+          "outputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/qa-result.json", "artifacts/tickets/{ticketId}/playwright-report/index.html"],
+          "transitions": [{ "outcome": "passed", "target": "implementation.pull-request" }, { "outcome": "failed", "target": "implementation.backend" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "implementation.pull-request",
+          "name": "Utworzenie lub aktualizacja PR",
+          "role": "developer",
+          "instructions": "Po zielonych testach utwórz lub zaktualizuj PR z brancha zadania do develop. Powiąż ticket, kryteria i dowody testów. Bez skonfigurowanego repozytorium i uprawnień zgłoś blokadę; nie wymyślaj URL ani udanego PR.",
+          "inputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/qa-result.json"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "created_or_updated", "target": "implementation.review" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "implementation.review",
+          "name": "Walidacja PR przez architekta",
+          "role": "architect",
+          "instructions": "Sprawdź diff PR, architekturę, ADR, bezpieczeństwo, jakość kodu, kryteria i aktualne wyniki CI. Uwagi zapisz w review i komentarzach ticketa. Zmiany wymagają powrotu do backendu oraz ponownego frontend/QA/review. Nie zatwierdzaj własnego review w roli developera.",
+          "inputs": ["tickets/tickets.json", "architecture.md", "artifacts/tickets/{ticketId}/qa-result.json"],
+          "outputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/review.json"],
+          "transitions": [{ "outcome": "approved", "target": "implementation.merge" }, { "outcome": "changes_requested", "target": "implementation.backend" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "implementation.merge",
+          "name": "Merge do develop i kolejne zadanie",
+          "role": "architect",
+          "instructions": "Zleć kontrolowany merge do develop tylko przy zatwierdzonym aktualnym SHA i zielonym CI. Zapisz merge commit, oznacz ticket done, zwolnij workspace i wróć po następne zadanie. Konflikt lub zmieniony SHA wymaga ponownej implementacji i weryfikacji.",
+          "inputs": ["tickets/tickets.json", "artifacts/tickets/{ticketId}/review.json"],
+          "outputs": ["tickets/tickets.json"],
+          "transitions": [{ "outcome": "merged", "target": "implementation.select-ticket" }, { "outcome": "changes_required", "target": "implementation.backend" }, { "outcome": "blocked", "target": "$blocked" }]
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "name": "4. Release test i jakość",
+      "steps": [
+        {
+          "id": "testing.release",
+          "name": "Release na środowisko test",
+          "role": "devOpsEngineer",
+          "requiresApproval": true,
+          "instructions": "Z develop zbuduj wersjonowany, niezmienny artefakt. Po zatwierdzeniu środowiska wdróż na test z migracjami, health check i procedurą rollback. Zapisz commit, digest, pipeline, adres i wynik. Nie dotykaj środowisk spoza konfiguracji.",
+          "inputs": ["tickets/tickets.json", "architecture.md"],
+          "outputs": ["releases/test/manifest.json", "releases/test/deployment-report.md"],
+          "transitions": [{ "outcome": "deployed", "target": "testing.qa" }, { "outcome": "failed", "target": "testing.triage" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "testing.qa",
+          "name": "Pełna regresja na test",
+          "role": "qa",
+          "instructions": "Wykonaj cały zestaw testów funkcjonalnych, API, integracyjnych i Playwright na wskazanej wersji testowej. Każdy błąd dodaj jako nowy ticket typu Bug ze wskazaniem release, reprodukcją i dowodem; deduplikuj istniejące błędy.",
+          "inputs": ["releases/test/manifest.json", "tickets/tickets.json"],
+          "outputs": ["artifacts/releases/{releaseId}/regression.json", "tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "testing.quality" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "testing.quality",
+          "name": "Raport Quality Engineer",
+          "role": "qualityEngineer",
+          "instructions": "Sprawdź charakterystyki jakościowe, statyczną analizę, zależności, bezpieczeństwo, dostępność UI i dowody pomiarów. Zapisz raport i nowe tickety Bug dla niespełnionych kryteriów. Brak pomiaru to nie PASS.",
+          "inputs": ["docs/architecture/quality-requirements.md", "releases/test/manifest.json", "artifacts/releases/{releaseId}/regression.json"],
+          "outputs": ["artifacts/releases/{releaseId}/quality-report.md", "tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "testing.triage" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "testing.triage",
+          "name": "Analiza błędów i ponowne kodowanie",
+          "role": "architect",
+          "instructions": "Przeanalizuj błędy wdrożenia, regresji i jakości. Uzupełnij opis, priorytet, kryteria i zależności ticketów. Gotowe błędy skieruj do etapu 3, po poprawkach wymagany nowy release test. Krytyczne błędy nie mogą być przemilczane ani oznaczone jako gotowe do stage.",
+          "inputs": ["tickets/tickets.json", "releases/test/deployment-report.md"],
+          "outputs": ["tickets/tickets.json", "artifacts/releases/{releaseId}/triage.md"],
+          "transitions": [{ "outcome": "bugs_found", "target": "implementation.select-ticket" }, { "outcome": "passed", "target": "deployment.stage" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        }
+      ]
+    },
+    {
+      "id": "deployment",
+      "name": "5. Stage, monitoring i ocena biznesowa",
+      "steps": [
+        {
+          "id": "deployment.stage",
+          "name": "Promocja sprawdzonej wersji na stage",
+          "role": "devOpsEngineer",
+          "requiresApproval": true,
+          "instructions": "Po zatwierdzeniu promuj dokładnie ten sam digest artefaktu, który przeszedł test. Nie przebudowuj innej wersji. Wykonaj kontrolowane migracje, health check, smoke test i rollback w razie błędu. Produkcja jest poza zakresem procesu 0.1.",
+          "inputs": ["releases/test/manifest.json", "artifacts/releases/{releaseId}/triage.md"],
+          "outputs": ["releases/stage/manifest.json", "releases/stage/deployment-report.md"],
+          "transitions": [{ "outcome": "deployed", "target": "deployment.monitoring" }, { "outcome": "failed", "target": "testing.triage" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "deployment.monitoring",
+          "name": "Monitoring aplikacji",
+          "role": "monitoring",
+          "instructions": "W trybie read-only sprawdź logi, metryki, trace, dostępność i progi jakościowe przez skonfigurowane okno obserwacji. Brak telemetrii zgłoś jako blokadę. Utwórz tickety błędów, ale samodzielnie nie zmieniaj konfiguracji, nie restartuj i nie wdrażaj aplikacji.",
+          "inputs": ["releases/stage/manifest.json", "docs/architecture/quality-requirements.md"],
+          "outputs": ["artifacts/releases/{releaseId}/monitoring-report.md", "tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "deployment.business-feedback" }, { "outcome": "blocked", "target": "$blocked" }]
+        },
+        {
+          "id": "deployment.business-feedback",
+          "name": "Ocena biznesowa działającego systemu",
+          "role": "businessAnalyst",
+          "instructions": "Porównaj działającą wersję stage z celem, zakresem i miernikami sukcesu. Oddziel błędy od nowych pomysłów; nowe wymagania zapisz jako propozycje Change wymagające akceptacji właściciela, bez samowolnego rozszerzania zakresu.",
+          "inputs": ["BRIEF.md", "docs/business/research.md", "releases/stage/manifest.json", "artifacts/releases/{releaseId}/monitoring-report.md"],
+          "outputs": ["artifacts/releases/{releaseId}/business-feedback.md", "tickets/tickets.json"],
+          "transitions": [{ "outcome": "completed", "target": "deployment.backlog-review" }]
+        },
+        {
+          "id": "deployment.backlog-review",
+          "name": "Końcowa ocena backlogu",
+          "role": "architect",
+          "instructions": "Zweryfikuj braki i błędy. Zatwierdzone zadania skieruj do etapu 3, następnie ponów test i stage. Zakończ tylko przy spełnionym uzgodnionym zakresie, braku blokujących błędów, aktualnych dowodach testów i zaakceptowanych ograniczeniach. Propozycje spoza zakresu nie tworzą automatycznej nieskończonej pętli.",
+          "inputs": ["tickets/tickets.json", "artifacts/releases/{releaseId}/business-feedback.md", "artifacts/releases/{releaseId}/monitoring-report.md"],
+          "outputs": ["tickets/tickets.json", "artifacts/final-report.md"],
+          "transitions": [{ "outcome": "backlog_empty", "target": "$completed" }, { "outcome": "changes_required", "target": "implementation.select-ticket" }, { "outcome": "owner_input_required", "target": "$blocked" }]
+        }
+      ]
+    }
+  ]
+}

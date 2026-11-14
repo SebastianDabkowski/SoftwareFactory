@@ -15,6 +15,7 @@ namespace SoftwareFactory.Core.Agents
         MaintenanceEngineer = 6,
         QualityEngineer = 7,
         BusinessAnalyst = 8,
+        Monitoring = 9,
 
     }
 }

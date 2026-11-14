@@ -6,15 +6,16 @@ namespace SoftwareFactory.Tests
     public class AgentFactoryTests
     {
         [Theory]
-        [InlineData(AgentRole.Architect, CodexModels.Reasoning.High)]
-        [InlineData(AgentRole.Developer, CodexModels.Reasoning.Medium)]
-        [InlineData(AgentRole.Frontend, CodexModels.Reasoning.Medium)]
-        [InlineData(AgentRole.QA, CodexModels.Reasoning.Low)]
-        [InlineData(AgentRole.DevOpsEngineer, CodexModels.Reasoning.High)]
-        [InlineData(AgentRole.MaintenanceEngineer, CodexModels.Reasoning.High)]
-        [InlineData(AgentRole.QualityEngineer, CodexModels.Reasoning.High)]
-        [InlineData(AgentRole.BusinessAnalyst, CodexModels.Reasoning.High)]
-        public void CreateAgent_ConfiguresRoleWithoutStartingCodex(AgentRole role, string effort)
+        [InlineData(AgentRole.Architect, PiModels.Reasoning.High)]
+        [InlineData(AgentRole.Developer, PiModels.Reasoning.Medium)]
+        [InlineData(AgentRole.Frontend, PiModels.Reasoning.Medium)]
+        [InlineData(AgentRole.QA, PiModels.Reasoning.Low)]
+        [InlineData(AgentRole.DevOpsEngineer, PiModels.Reasoning.High)]
+        [InlineData(AgentRole.MaintenanceEngineer, PiModels.Reasoning.High)]
+        [InlineData(AgentRole.QualityEngineer, PiModels.Reasoning.High)]
+        [InlineData(AgentRole.BusinessAnalyst, PiModels.Reasoning.High)]
+        [InlineData(AgentRole.Monitoring, PiModels.Reasoning.High)]
+        public void CreateAgent_ConfiguresRoleWithoutStartingPi(AgentRole role, string effort)
         {
             var workspace = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
@@ -23,8 +24,9 @@ namespace SoftwareFactory.Tests
             Assert.Equal((int)role, agent.Id);
             Assert.Equal(role.ToString(), agent.AgentName);
             Assert.False(string.IsNullOrWhiteSpace(agent.Instruction));
-            Assert.Equal(CodexModels.Models.Gpt61Sol, agent.Config.model);
-            Assert.Equal(effort, agent.Config.reasoningEffort);
+            Assert.Equal(PiModels.Models.Gpt61Sol, agent.Config.Model);
+            Assert.Equal("openai", agent.Config.Provider);
+            Assert.Equal(effort, agent.Config.ThinkingLevel);
             Assert.False(Directory.Exists(workspace));
             agent.StopAgent();
         }
@@ -48,7 +50,7 @@ namespace SoftwareFactory.Tests
         [Theory]
         [InlineData("")]
         [InlineData(" ")]
-        public async Task StartAgent_RejectsEmptyPromptBeforeStartingCodex(string prompt)
+        public async Task StartAgent_RejectsEmptyPromptBeforeStartingPi(string prompt)
         {
             var agent = new AgentBase(".");
 
@@ -60,7 +62,7 @@ namespace SoftwareFactory.Tests
         [InlineData(" ", "Create an API")]
         [InlineData(".", "")]
         [InlineData(".", " ")]
-        public async Task SoftwareSystem_RejectsEmptyInputsBeforeStartingCodex(string workspace, string goal)
+        public async Task SoftwareSystem_RejectsEmptyInputsBeforeStartingPi(string workspace, string goal)
         {
             var factory = new SoftwareSystem();
 

@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Scenarios\ai-agent-store.md" />
+    <EmbeddedResource Include="Workflow\Definitions\software-factory.v0.1.json" />
+  </ItemGroup>
+
 </Project>

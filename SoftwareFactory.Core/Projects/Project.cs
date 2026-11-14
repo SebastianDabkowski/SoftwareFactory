@@ -12,6 +12,9 @@ namespace SoftwareFactory.Core.Projects
         public string Path { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
+        public string ProcessId { get; set; } = string.Empty;
+        public string ProcessVersion { get; set; } = string.Empty;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
         public void LoadProject(string projectPath)
         {

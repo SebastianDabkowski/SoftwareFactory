@@ -17,6 +17,8 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <ProjectReference Include="..\SoftwareFactory.Core\SoftwareFactory.Core.csproj" />
+    <ProjectReference Include="..\SoftwareFactory\SoftwareFactory.csproj" />
+    <None Update="FakePi.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

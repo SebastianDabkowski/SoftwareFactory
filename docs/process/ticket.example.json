@@ -1,0 +1,36 @@
+[
+  {
+    "id": "T-001",
+    "title": "Przygotowanie struktury kodu według architektury",
+    "description": "Pierwsze zadanie: utworzyć projekty/moduły, zależności, bazową konfigurację i szkielet testów zgodnie z architecture.md oraz ADR. Bez implementacji funkcjonalności poza zakresem tego ticketa.",
+    "acceptanceCriteria": "Struktura odpowiada architecture.md; zależności są zgodne z ADR; projekt kompiluje się; co najmniej jeden rzeczywisty test sprawdza uruchomienie podstawowego komponentu; README opisuje lokalny build i test.",
+    "projectId": "example-project",
+    "assignedTo": "Developer",
+    "type": "foundation",
+    "priority": "high",
+    "order": 1,
+    "dependsOn": [],
+    "requiresFrontend": false,
+    "requiresBrowserTests": false,
+    "status": "ready",
+    "createdAt": "2026-01-01T00:00:00+00:00",
+    "updatedAt": "2026-01-01T00:00:00+00:00",
+    "questions": [],
+    "comments": [
+      {
+        "id": "comment-example-1",
+        "author": "architect",
+        "addressedTo": "developer",
+        "stepId": "architecture.backlog-review",
+        "message": "Przykładowe zadanie bazowe. W rzeczywistym projekcie kryteria muszą wskazywać konkretne projekty i komendy wynikające z zatwierdzonej architektury.",
+        "createdAt": "2026-01-01T00:00:00+00:00",
+        "evidencePaths": []
+      }
+    ],
+    "evidencePaths": [],
+    "branchName": null,
+    "pullRequest": null,
+    "sourceReleaseId": null,
+    "reworkCount": 0
+  }
+]
